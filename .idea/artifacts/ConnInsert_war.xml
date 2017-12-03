@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="ConnInsert:war">
+    <output-path>$PROJECT_DIR$/ConnInsert/target</output-path>
+    <root id="archive" name="ConnInsert.war">
+      <element id="artifact" artifact-name="ConnInsert:war exploded" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/ConnInsert/ConnInsert.iml" filepath="$PROJECT_DIR$/ConnInsert/ConnInsert.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ConnectOrm.iml" filepath="$PROJECT_DIR$/ConnectOrm.iml" />
+    </modules>
+  </component>
+</project>

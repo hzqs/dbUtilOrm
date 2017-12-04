@@ -21,4 +21,9 @@ public class BeanHandle<T> implements ResultSetHandler<T>{
     public T hadle(ResultSet rs) throws SQLException {
         return rs.next()? RowProcessor.toBean(rs,beanClazz):null;
     }
+
+
+
+
+
 }

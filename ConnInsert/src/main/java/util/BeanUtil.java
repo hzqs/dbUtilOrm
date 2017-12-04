@@ -72,6 +72,9 @@ public static void setField(Object bean,String columnName,Class clazz,ResultSet 
     }
 
 
+
+
+
 }
 
 

@@ -53,7 +53,7 @@ public class SQLExecutor {
     }
 
     //连接异常处理
-    public <T> T executeQuery(String sql, ResultSetHandler<T> handler , Object... args) throws SQLException {
+    public <T> T executeQuery(String sql, ResultSetHandler<T> handler , Object... args) throws SQLException, IllegalAccessException, InstantiationException {
         if(connection==null){
             throw new SQLException("Null connection");
         }
@@ -62,11 +62,10 @@ public class SQLExecutor {
             throw  new SQLException("Null SQL statement");
         }
 
-
         PreparedStatement ps=connection.prepareStatement(sql);
         setParams(args,ps);
         ResultSet rs=ps.executeQuery();
-        T t=handler.hadle(rs);
+        T t=handler.handle(rs);
         return t;
     }
 
@@ -123,5 +122,7 @@ private void setParams(Object[] params, PreparedStatement ps) {
            connection.close();
        }
   }
+
+
 
 }

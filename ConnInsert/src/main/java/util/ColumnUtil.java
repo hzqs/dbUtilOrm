@@ -11,81 +11,53 @@ public class ColumnUtil {
     /*
     * 将结果集中的一列数据转换成与bean对象属性一致的类型。
     * */
-public static Object columnConvert(String columnName, ResultSet rs,Class propType) throws SQLException {
-    if(!propType.isPrimitive() && rs.getObject(columnName) == null){
-        return null;
-    }
-
-    Object value = null;
-
-    if(propType.equals(String.class)){
-
-        value = rs.getString(columnName);
-
-    }else if(propType.equals(Character.TYPE)
-            || propType.equals(Character.class)){
-
-        value = rs.getString(columnName).charAt(0);
-
-    } else if(propType.equals(Double.TYPE)
-            || propType.equals(Double.class)){
-
-        value = rs.getDouble(columnName);
-
-    }else if(propType.equals(Float.TYPE)
-            || propType.equals(Float.class)){
-
-        value = rs.getFloat(columnName);
-
-    }else if(propType.equals(Long.TYPE)
-            || propType.equals(Long.class)){
-
-        value = rs.getLong(columnName);
-
-    }else if(propType.equals(Integer.TYPE)
-            || propType.equals(Integer.class)){
-
-        value = rs.getInt(columnName);
-
-    }else if(propType.equals(Short.TYPE)
-            ||propType.equals(Short.class)){
-
-        value = rs.getShort(columnName);
-
-    }else if(propType.equals(Byte.TYPE)
-            ||propType.equals(Byte.class)){
-
-        value = rs.getByte(columnName);
+    public static Object typeConvert(Class<?> propType,ResultSet resultSet,String columnName) throws SQLException {
+        Object object = null;
+        if(propType.equals(String.class)) {
+            object = resultSet.getString(columnName);
+        } else if(propType.equals(Integer.TYPE) || propType.equals(Integer.class)) {
+            object = resultSet.getInt(columnName);
+        } else if(propType.equals(Boolean.TYPE) || propType.equals(Boolean.class)) {
+            object = resultSet.getBoolean(columnName);
+        } else if(propType.equals(Long.TYPE) || propType.equals(Boolean.class)) {
+            object = resultSet.getLong(columnName);
+        } else if(propType.equals(Long.TYPE) || propType.equals(Long.class)) {
+            object = resultSet.getDouble(columnName);
+        } else if(propType.equals(Float.TYPE) || propType.equals(Long.class)) {
+            object = resultSet.getFloat(columnName);
+        } else if(propType.equals(Short.TYPE) || propType.equals(Short.class)) {
+            object = resultSet.getShort(columnName);
+        } else if(propType.equals(Byte.TYPE) || propType.equals(Byte.class)) {
+            object = resultSet.getByte(columnName);
 
     }else{
         //如果最后都不成立，就检查是不是日期类型
-        value = rs.getObject(columnName);
-        value = checkDateType(value , propType);
+        object = resultSet.getObject(columnName);
+        object = checkDateType(object , propType);
     }
-
-    return value;
+    return object;
 }
 
 /*
 * 处理日期类型
 * */
 
-private static Object checkDateType(Object value,Class type){
-    if(value instanceof java.util.Date){
+private static Object checkDateType(Object object,Class type){
+    if(object instanceof java.util.Date){
         if(type.equals(java.sql.Date.class)){
-            long time=((java.util.Date)value).getTime();
-            value=new java.sql.Date(time);
+            long time=((java.util.Date)object).getTime();
+            object=new java.sql.Date(time);
         }else if(type.equals(java.sql.Time.class)){
-            value=new java.sql.Time(((java.util.Date) value).getTime());
+            object=new java.sql.Time(((java.util.Date) object).getTime());
         }else if(type.equals(java.sql.Timestamp.class)){
-            Timestamp ts=(Timestamp) value;
+            Timestamp ts=(Timestamp) object;
             int nanos=ts.getNanos();
-            value=new java.sql.Timestamp(ts.getTime());
-            ((Timestamp) value).setNanos(nanos);
+            object=new java.sql.Timestamp(ts.getTime());
+            ((Timestamp) object).setNanos(nanos);
         }
     }
 
-    return value;
+    return object;
 }
 
 

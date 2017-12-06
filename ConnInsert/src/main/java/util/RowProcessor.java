@@ -3,7 +3,7 @@ package util;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,31 +17,29 @@ public class RowProcessor {
 
     //转换成map类型
     public static Map<String , Object> toMap(ResultSet rs) throws SQLException {
-       Map map=null;
+        Map<String,Object>map=new HashMap<String,Object>();
         ResultSetMetaData md=rs.getMetaData();
         for(int i=0;i<md.getColumnCount();i++){
-            String name=md.getColumnLabel(i);
-            map.put(i,name);
+            map.put(md.getColumnLabel(i),rs.getObject(i));
         }
         return map;
 
     }
 
     //转换成MapList类型。
+/**
+ * 将结果集存放Object数组
+ *
+ */
 
-   public static List<Map>  ListMap(ResultSet rs) {
-       List list=null;
-
-
-
-
-
-        return list;
-    }
-
-
-
-
+  public static Object[] toArray(ResultSet resultSet) throws SQLException {
+      ResultSetMetaData metaData=resultSet.getMetaData();
+      Object[] objects=new Object[metaData.getColumnCount()];
+      for(int i=0;i<metaData.getColumnCount();i++){
+          objects[i]=resultSet.getObject(i+1);
+      }
+      return objects;
+  }
 
 
 

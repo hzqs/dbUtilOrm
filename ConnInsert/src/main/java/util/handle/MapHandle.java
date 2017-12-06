@@ -10,11 +10,11 @@ import java.util.Map;
 /**
  * Created by hzq on 2017/12/4.
  */
-public class MapHandle implements ResultSetHandler{
+public class MapHandle implements ResultSetHandler<Map<String,Object>>{
+
 
     @Override
-    public Map hadle(ResultSet rs) throws SQLException {
+    public Map<String, Object> handle(ResultSet rs) throws SQLException, InstantiationException, IllegalAccessException {
         return rs.next()? RowProcessor.toMap(rs):null;
     }
-
 }

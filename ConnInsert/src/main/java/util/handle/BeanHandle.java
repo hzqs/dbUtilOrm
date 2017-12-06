@@ -17,13 +17,8 @@ public class BeanHandle<T> implements ResultSetHandler<T>{
         this.beanClazz=beanClazz;
     }
 
-
-    public T hadle(ResultSet rs) throws SQLException {
+    @Override
+    public T handle(ResultSet rs) throws SQLException, InstantiationException, IllegalAccessException {
         return rs.next()? RowProcessor.toBean(rs,beanClazz):null;
     }
-
-
-
-
-
 }

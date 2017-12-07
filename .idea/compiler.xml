@@ -6,10 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Beans" />
         <module name="ConnInsert" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="Beans" target="1.8" />
       <module name="ConnectOrm" target="1.8" />
       <module name="ConnInsert" target="1.8" />
     </bytecodeTargetLevel>

@@ -2,10 +2,8 @@ package factory;
 
 import myAnn.Component;
 import myAnn.Scope;
-import util.ScanUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 /**
  * Created by hzq on 2017/12/7.
@@ -22,14 +20,16 @@ public class BeanFactory {
     private static Map<String,BeanDefinition> prototype=new HashMap<String,BeanDefinition>();
 
     public BeanFactory(String resoucePath){
+        //scanUtil.scan(path)
         //先初始化原型容器
-        initPrototype(resoucePath);
+       // initPrototype(resoucePath);
         //初始化单例容器
         initSingleton();
     }
-
+/*
     private void initPrototype(String pathName){
-        List<String> classList = ScanUtil.scan(pathName);
+        //
+        //List<String> classList = ScanUtil.scan(pathName);
         for(String cl:classList){
             Class<?> clazz = null;
             try {
@@ -40,6 +40,7 @@ public class BeanFactory {
             setPrototype(clazz);
         }
     }
+    */
     private static void setPrototype(Class<?> clazz){
         if(clazz.isAnnotationPresent(Component.class)){
             BeanDefinition df = setDefinition(clazz);
@@ -88,4 +89,9 @@ public class BeanFactory {
         }
 
     }
+
+
+
 }
+
+

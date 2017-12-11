@@ -1,5 +1,6 @@
+package factory;
+
 import Handle.InjectHandler;
-import factory.BeanFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;

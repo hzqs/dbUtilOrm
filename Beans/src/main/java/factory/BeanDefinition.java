@@ -1,23 +1,16 @@
 package factory;
 
-/**
- * Created by hzq on 2017/12/7.
- */
 public class BeanDefinition {
-    //bean的唯一标识
-    private String id;
-    //bean的完整类名
-    private Class<?> clazz;
-    //bean的创建方式
-    private String scope = "singleton";
 
-    public String getId() {
-        return id;
-    }
+    /**
+     * bean的作用域(创建方式)
+     */
+    private String scope;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    /**
+     * bean的Class
+     */
+    private Class<?> beanClass;
 
     public String getScope() {
         return scope;
@@ -27,12 +20,11 @@ public class BeanDefinition {
         this.scope = scope;
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    public Class<?> getBeanClass() {
+        return beanClass;
     }
 
-    public void setClazz(Class<?> clazz) {
-        this.clazz = clazz;
+    public void setBeanClass(Class<?> beanClass) {
+        this.beanClass = beanClass;
     }
 }
-

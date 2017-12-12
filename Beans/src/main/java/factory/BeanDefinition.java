@@ -1,5 +1,7 @@
 package factory;
 
+import java.lang.reflect.Method;
+
 public class BeanDefinition {
 
     /**
@@ -7,10 +9,13 @@ public class BeanDefinition {
      */
     private String scope;
 
-    /**
-     * bean的Class
-     */
-    private Class<?> beanClass;
+
+
+     private Method initMethod;
+     private Method destroyMethod;
+
+    private Class<?> clazz;
+
 
     public String getScope() {
         return scope;
@@ -20,11 +25,27 @@ public class BeanDefinition {
         this.scope = scope;
     }
 
-    public Class<?> getBeanClass() {
-        return beanClass;
+    public Class<?> getClazz() {
+        return clazz;
     }
 
-    public void setBeanClass(Class<?> beanClass) {
-        this.beanClass = beanClass;
+    public void setClazz(Class<?> clazz) {
+        this.clazz = clazz;
+    }
+
+    public Method getInitMethod() {
+        return initMethod;
+    }
+
+    public void setInitMethod(Method initMethod) {
+        this.initMethod = initMethod;
+    }
+
+    public Method getDestroyMethod() {
+        return destroyMethod;
+    }
+
+    public void setDestroyMethod(Method destroyMethod) {
+        this.destroyMethod = destroyMethod;
     }
 }

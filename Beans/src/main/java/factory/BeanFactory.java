@@ -1,205 +1,190 @@
 package factory;
 
+
 import myAnn.Component;
 import myAnn.Scope;
-import util.BeanNameUtil;
 import util.ScanUtil;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class BeanFactory {
-    /**
-     * 存放bean的描述
-     */
-    final Map<String, BeanDefinition> definitionMap = new ConcurrentHashMap<>();
-
-    /**
-     * 存放单例bean的实例
-     */
-    final Map<String, Object> singletonMap = new ConcurrentHashMap<>();
-
-    /**
-     * 在构造方法中初始化并构建所有bean描述
-     * 以及单例的bean
-     *
-     * @param path 扫描路径
-     */
-    public BeanFactory(String path) {
-        Set<String> classNames = ScanUtil.scan(path);
-        //初始化原型
-        initDefinitionMap(classNames);
-        //初始化单例
+    public BeanFactory(String pathName) {
+        initPrototype(pathName);
         initSingleton();
     }
 
+    //单例的容器
+    private static Map<String, Object> singleton = new HashMap<String, Object>();
+    //原型的容器
+    private static Map<String, BeanDefinition> prototype = new HashMap<String, BeanDefinition>();
+
     /**
-     * 解析所有的类名并并检查容器中是否存在当前的Bean描述,如果不存在,构建Bean描述放入容器
+     * 初始化原型工厂
+     *
+     * @param pathName
+     * @throws Exception
      */
-    private void initDefinitionMap(Set<String> classNames) {
-        for (String className : classNames) {
-            Class<?> beanClass = getClass(className);
-            if (beanClass.isAnnotationPresent(Component.class)) {
-                String beanName = createBeanName(beanClass);
-                if (definitionMap.containsKey(beanName)) {
-                    throw new RuntimeException(
-                            "conflicts with existing, non-compatible bean definition of same name and class ["
-                                    + beanClass + "]");
-                } else {
-                    definitionMap.put(beanName,
-                            createBeanDefinition(beanClass));
+    private void initPrototype(String pathName) {
+        List<String> classList = (List<String>) ScanUtil.scan(pathName);
+        for (String cl : classList) {
+            Class<?> clazz = null;
+            try {
+                clazz = Class.forName(cl);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            setPrototype(clazz);
+        }
+    }
+    //put进原型容器
+    private static void setPrototype(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(Component.class)) {
+            BeanDefinition df = setDefinition(clazz);
+            prototype.put(clazz.getAnnotation(Component.class).value(), df);
+        }
+    }
+
+    //设置bean描述
+    private static BeanDefinition setDefinition(Class<?> clazz) {
+        BeanDefinition definition = new BeanDefinition();
+        definition.setClazz(clazz);
+        definition.setScope(clazz.getAnnotation(Scope.class).value());
+        definition.setInitMethod(setInitMethod(clazz));
+        definition.setDestroyMethod(setDestroyMethod(clazz));
+        return definition;
+    }
+    public static Method setInitMethod(Class<?> clazz){
+        Method[] methods = clazz.getMethods();
+        Method m = null;
+        for(Method ms:methods){
+            if(ms.isAnnotationPresent(PostConstruct.class)){
+                m = ms;
+            }
+        }
+        return m;
+    }
+    public static Method setDestroyMethod(Class<?> clazz){
+        Method[] methods = clazz.getMethods();
+        Method m = null;
+        for(Method ms:methods){
+            if(ms.isAnnotationPresent(PreDestroy.class)){
+                m=ms;
+            }
+        }
+        return m;
+    }
+
+
+    /**
+     * 初始化单例的容器
+     */
+    private void initSingleton() {
+        for (String key : prototype.keySet()) {
+            BeanDefinition def = prototype.get(key);
+            if ("singleton".equals(def.getScope())) {
+                try {
+                    singleton.put(key, createBean(def));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
     }
-
-    /**
-     * 根据权限顶类名获取Class对象
-     *
-     * @param className
-     * @return
-     */
-    private Class<?> getClass(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Can not find the class name " + className + " to build the description.");
-        }
+    public void close(){
+        executeDestroyMethods();
+        singleton.clear();
+        prototype.clear();
     }
-
-    /**
-     * beanName作为容器的key,当Component没有指定名字的时候,默认使用当前的类名作为bean的名字 并将类名的首字母转换成小写
-     *
-     * @param beanClass
-     * @return
-     */
-    private String createBeanName(Class<?> beanClass) {
-        Component annotation = beanClass.getAnnotation(Component.class);
-        return ("".equals(annotation.value())) ? BeanNameUtil
-                .toLowerBeanName(beanClass.getSimpleName()) : annotation
-                .value();
-    }
-
-    /**
-     * 构建bean描述定义,将bean的scope以及类名封装到BeanDefinition中
-     * 创建的Bean描述会放入definitionMap的集合中保存
-     * Bean的类名作为集合的key,而整个BeanDefinition对象作为value
-     *
-     * @param beanClass
-     */
-    private BeanDefinition createBeanDefinition(Class<?> beanClass) {
-        // 创建BeanDefinition
-        BeanDefinition definition = new BeanDefinition();
-        //设置Bean的Class对象
-        setBeanClass(definition, beanClass);
-        //设置Bean的作用域
-        setBeanScope(definition, beanClass);
-        return definition;
-    }
-
-    /**
-     * 为definition设置BeanClass 将当前Bean的class对象保存到描述对象中
-     */
-    private void setBeanClass(BeanDefinition definition, Class<?> beanClass) {
-        definition.setBeanClass(beanClass);
-    }
-
-    /**
-     * 为definition设置Bean的作用域
-     * 如果bean的class上指定了Scope注解(也就是容器创建Bean的方式),一并保存Bean的作用域 否则Bean的作用默认创建方式将使用单例
-     */
-    private void setBeanScope(BeanDefinition definition, Class<?> beanClass) {
-        String scope = (beanClass.isAnnotationPresent(Scope.class)) ? beanClass
-                .getAnnotation(Scope.class).value() : "singleton";
-        definition.setScope(scope);
-    }
-
-    /**
-     * 初始化SINGLETON实例放入bean容器中 立即加载的方式会先初始化所有单例的Bean 并放入容器中
-     */
-    private void initSingleton() {
-        for (String beanName : definitionMap.keySet()) {
-            BeanDefinition definition = definitionMap.get(beanName);
-            if ("singleton".equals(definition.getScope())) {
-                Object bean = createBean(definition);
-                // 将bean实例放入bean容器中
-                singletonMap.put(beanName, bean);
+    private void executeDestroyMethods(){
+        for(String p:prototype.keySet()){
+            BeanDefinition definition = prototype.get(p);
+            Object s=singleton.get(p);
+            if(s!=null){
+                try {
+                    definition.getDestroyMethod().invoke(s);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
             }
+
         }
     }
 
-    /**
-     * 构建bean实例,并初始化依赖关系（注入）
-     *
-     * @param definition
-     * @return
-     */
-    private Object createBean(BeanDefinition definition) {
-        // 构建Bean实例
-        Object bean = newInstance(definition);
-        // 为Bean对象执行依赖注入
-        return DependencyInvoker.inject(bean,definition.getBeanClass(),this);
+    public <T> T getBean(String name) {
+        return (T) getContainerBean(name);
     }
 
+    public <T> T getBean(String name, Class<T> clazz) {
+        return (T) getContainerBean(name);
+    }
     /**
-     * 根据描述定义创建Bean实例
-     * @param definition
+     * 根据id获取实例对象
+     * @param id
      * @return
      */
-    private Object newInstance(BeanDefinition definition) {
-        try {
-            return definition.getBeanClass().newInstance();
-        } catch (InstantiationException e) {
-            throw new RuntimeException("Create bean instance fail.", e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Create bean instance fail.", e);
+    private Object getContainerBean(String id){
+        Object bean = singleton.get(id);
+        if(bean == null){
+            bean = getPrototype(id);
         }
-    }
 
-    /**
-     * 获取Bean描述容器
-     *
-     * @return
-     */
-    Map<String, BeanDefinition> getDefinitionMap() {
-        return definitionMap;
-    }
-
-    /**
-     * 获取bean实例
-     *
-     * @param beanName
-     * @return
-     */
-    public Object getBean(String beanName) {
-        return doGetBean(beanName);
-    }
-
-    /**
-     * 获取bean实例(泛型)
-     *
-     * @param beanName
-     * @param clazz
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T getBean(String beanName, Class<T> clazz) {
-        return (T) doGetBean(beanName);
-    }
-
-    /**
-     * 从容器中获取Bean实例
-     * 如果容器存在单例的Bean,则从容器中直接返回
-     * 否则以原型的方式创建并返回
-     */
-    private Object doGetBean(String beanName) {
-        // 如果容器存在单例的Bean,不为空则从容器中直接返回,否则以原型创建实力并返回
-        Object bean = singletonMap.get(beanName);
-        if (bean == null) {
-            BeanDefinition definition = definitionMap.get(beanName);
-            bean = createBean(definition);
-        }
         return bean;
     }
+
+    /**
+     * 获取原型实例
+     * @param id
+     * @return
+     */
+    private Object getPrototype(String id){
+        //判断prototype集合中是否存在id键
+        if(prototype.containsKey(id)){
+            return createBean(prototype.get(id));
+        }
+        throw new RuntimeException();
+    }
+
+
+    /**
+     *  创建实例并执行注入
+     * @param
+     * @return
+     */
+    private Object createBean(BeanDefinition definition){
+        try {
+            Object instance = definition.getClazz().newInstance();
+            //初始化执行init
+            exectorInit(definition,instance);
+            //执行注入
+            setinject(instance, definition.getClazz());
+            return instance;
+        } catch (InstantiationException e) {
+            throw new RuntimeException("Create bean fail.");
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Create bean fail.");
+        }
+    }
+    //初始化执行init
+    private void exectorInit(BeanDefinition definition,Object instance){
+        Method method = definition.getInitMethod();
+        try {
+            if(method!=null){
+                method.invoke(instance);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //通过迭代器执行方法和字段的注入
+    private void setinject(Object bean, Class<?> clazz){
+        InjectionExector.exector(this,clazz,bean);
+    }
+
 }

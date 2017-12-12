@@ -9,8 +9,6 @@ public class BeanDefinition {
      */
     private String scope;
 
-
-
      private Method initMethod;
      private Method destroyMethod;
 
